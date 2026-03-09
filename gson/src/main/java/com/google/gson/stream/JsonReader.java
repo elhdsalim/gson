@@ -209,6 +209,7 @@ import java.util.Objects;
  * @since 1.6
  */
 public class JsonReader implements Closeable {
+  private static final int STACK_PATH_CAPACITY = 32; // Capacity of stack and path arrays
   private static final long MIN_INCOMPLETE_INTEGER = Long.MIN_VALUE / 10;
 
   private static final int PEEKED_NONE = 0;
@@ -291,7 +292,7 @@ public class JsonReader implements Closeable {
   private String peekedString;
 
   /** The nesting stack. Using a manual array rather than an ArrayList saves 20%. */
-  private int[] stack = new int[32];
+  private int[] stack = new int[STACK_PATH_CAPACITY];
 
   private int stackSize = 0;
 
@@ -307,8 +308,8 @@ public class JsonReader implements Closeable {
    * that array. Otherwise the value is undefined, and we take advantage of that
    * by incrementing pathIndices when doing so isn't useful.
    */
-  private String[] pathNames = new String[32];
-  private int[] pathIndices = new int[32];
+  private String[] pathNames = new String[STACK_PATH_CAPACITY];
+  private int[] pathIndices = new int[STACK_PATH_CAPACITY];
 
   /** Creates a new instance that reads a JSON-encoded stream from {@code in}. */
   public JsonReader(Reader in) {
