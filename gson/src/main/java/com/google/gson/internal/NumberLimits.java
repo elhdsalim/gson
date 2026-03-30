@@ -11,10 +11,12 @@ public class NumberLimits {
   private NumberLimits() {}
 
   private static final int MAX_NUMBER_STRING_LENGTH = 10_000;
+  private static final int ERROR_LENGTH = 30;
 
   private static void checkNumberStringLength(String s) {
     if (s.length() > MAX_NUMBER_STRING_LENGTH) {
-      throw new NumberFormatException("Number string too large: " + s.substring(0, 30) + "...");
+      // here substring(0,30) is used to get only the first 30 characters of the error
+      throw new NumberFormatException("Number string too large: " + s.substring(0, ERROR_LENGTH) + "...");
     }
   }
 

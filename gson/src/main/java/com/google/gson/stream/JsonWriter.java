@@ -16,17 +16,6 @@
 
 package com.google.gson.stream;
 
-import static com.google.gson.stream.JsonScope.DANGLING_NAME;
-import static com.google.gson.stream.JsonScope.EMPTY_ARRAY;
-import static com.google.gson.stream.JsonScope.EMPTY_DOCUMENT;
-import static com.google.gson.stream.JsonScope.EMPTY_OBJECT;
-import static com.google.gson.stream.JsonScope.NONEMPTY_ARRAY;
-import static com.google.gson.stream.JsonScope.NONEMPTY_DOCUMENT;
-import static com.google.gson.stream.JsonScope.NONEMPTY_OBJECT;
-
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.gson.FormattingStyle;
-import com.google.gson.Strictness;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
@@ -38,6 +27,17 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
+
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.gson.FormattingStyle;
+import com.google.gson.Strictness;
+import static com.google.gson.stream.JsonScope.DANGLING_NAME;
+import static com.google.gson.stream.JsonScope.EMPTY_ARRAY;
+import static com.google.gson.stream.JsonScope.EMPTY_DOCUMENT;
+import static com.google.gson.stream.JsonScope.EMPTY_OBJECT;
+import static com.google.gson.stream.JsonScope.NONEMPTY_ARRAY;
+import static com.google.gson.stream.JsonScope.NONEMPTY_DOCUMENT;
+import static com.google.gson.stream.JsonScope.NONEMPTY_OBJECT;
 
 /**
  * Writes a JSON (<a href="https://www.ietf.org/rfc/rfc8259.txt">RFC 8259</a>) encoded value to a
@@ -164,6 +164,7 @@ public class JsonWriter implements Closeable, Flushable {
   // Syntax as defined by https://datatracker.ietf.org/doc/html/rfc8259#section-6
   private static final Pattern VALID_JSON_NUMBER_PATTERN =
       Pattern.compile("-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?(?:[eE][-+]?[0-9]+)?");
+  private static final int STACK_CAPACITY = 32;
 
   /*
    * From RFC 8259, "All Unicode characters may be placed within the
@@ -201,7 +202,7 @@ public class JsonWriter implements Closeable, Flushable {
   /** The JSON output destination */
   private final Writer out;
 
-  private int[] stack = new int[32];
+  private int[] stack = new int[STACK_CAPACITY];
   private int stackSize = 0;
 
   {

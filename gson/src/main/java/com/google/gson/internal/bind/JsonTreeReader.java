@@ -16,6 +16,12 @@
 
 package com.google.gson.internal.bind;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -25,11 +31,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * This reader walks the elements of a JsonElement as if it was coming from a character stream.
@@ -50,9 +51,10 @@ public final class JsonTreeReader extends JsonReader {
         }
       };
   private static final Object SENTINEL_CLOSED = new Object();
+  private static final int STACK_CAPACITY = 32;
 
   /** The nesting stack. Using a manual array rather than an ArrayList saves 20%. */
-  private Object[] stack = new Object[32];
+  private Object[] stack = new Object[STACK_CAPACITY];
 
   /**
    * The used size of {@link #stack}; the value at {@code stackSize - 1} is the value last placed on
@@ -70,8 +72,8 @@ public final class JsonTreeReader extends JsonReader {
    * that array. Otherwise the value is undefined, and we take advantage of that
    * by incrementing pathIndices when doing so isn't useful.
    */
-  private String[] pathNames = new String[32];
-  private int[] pathIndices = new int[32];
+  private String[] pathNames = new String[STACK_CAPACITY];
+  private int[] pathIndices = new int[STACK_CAPACITY];
 
   public JsonTreeReader(JsonElement element) {
     super(UNREADABLE_READER);
