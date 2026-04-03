@@ -1876,6 +1876,29 @@ public class JsonReader implements Closeable {
     return getPath(true);
   }
 
+  private char readUnicodeEscape() throws IOException {
+    if (pos + 4 > limit && !fillBuffer(4)) {
+      throw syntaxError("Unterminated escape sequence");
+    }
+    // Equivalent to Integer.parseInt(stringPool.get(buffer, pos, 4), 16);
+    int result = 0;
+    for (int i = pos, end = i + 4; i < end; i++) {
+      char c = buffer[i];
+      result <<= 4;
+      if (c >= '0' && c <= '9') {
+        result += (c - '0');
+      } else if (c >= 'a' && c <= 'f') {
+        result += (c - 'a' + 10);
+      } else if (c >= 'A' && c <= 'F') {
+        result += (c - 'A' + 10);
+      } else {
+        throw syntaxError("Malformed Unicode escape \\u" + new String(buffer, pos, 4));
+      }
+    }
+    pos += 4;
+    return (char) result;
+  }
+
   /**
    * Unescapes the character identified by the character or characters that
    * immediately follow a
@@ -1894,26 +1917,7 @@ public class JsonReader implements Closeable {
     char escaped = buffer[pos++];
     switch (escaped) {
       case 'u':
-        if (pos + 4 > limit && !fillBuffer(4)) {
-          throw syntaxError("Unterminated escape sequence");
-        }
-        // Equivalent to Integer.parseInt(stringPool.get(buffer, pos, 4), 16);
-        int result = 0;
-        for (int i = pos, end = i + 4; i < end; i++) {
-          char c = buffer[i];
-          result <<= 4;
-          if (c >= '0' && c <= '9') {
-            result += (c - '0');
-          } else if (c >= 'a' && c <= 'f') {
-            result += (c - 'a' + 10);
-          } else if (c >= 'A' && c <= 'F') {
-            result += (c - 'A' + 10);
-          } else {
-            throw syntaxError("Malformed Unicode escape \\u" + new String(buffer, pos, 4));
-          }
-        }
-        pos += 4;
-        return (char) result;
+        return readUnicodeEscape();
 
       case 't':
         return '\t';
