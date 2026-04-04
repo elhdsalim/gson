@@ -57,6 +57,9 @@ public class ISO8601Utils {
    */
   private static final TimeZone TIMEZONE_UTC = TimeZone.getTimeZone(UTC_ID);
 
+  private static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
+  private static final int MINUTES_PER_HOUR = 60;
+
   /*
    * /**********************************************************
    * /* Formatting
@@ -120,9 +123,10 @@ public class ISO8601Utils {
     }
 
     int offset = tz.getOffset(calendar.getTimeInMillis());
+    int offsetMinutes = (offset / (MILLISECONDS_PER_MINUTE));
     if (offset != 0) {
-      int hours = Math.abs((offset / (60 * 1000)) / 60);
-      int minutes = Math.abs((offset / (60 * 1000)) % 60);
+      int hours = Math.abs(offsetMinutes) / MINUTES_PER_HOUR;
+      int minutes = Math.abs(offsetMinutes) % MINUTES_PER_HOUR;
       formatted.append(offset < 0 ? '-' : '+');
       padInt(formatted, hours, "hh".length());
       formatted.append(':');
@@ -429,3 +433,4 @@ public class ISO8601Utils {
     return string.length();
   }
 }
+
