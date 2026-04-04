@@ -267,7 +267,7 @@ public class ISO8601Utils {
   }
 
   private static ParsedTimeZone parseTimeZone(String date, int offset) {
-    char (offset);
+    char timezoneIndicator = date.charAt(offset);
 
     if (timezoneIndicator == 'Z') {
       return new ParsedTimeZone(offset + 1, TIMEZONE_UTC);
@@ -433,4 +433,3 @@ public class ISO8601Utils {
     return string.length();
   }
 }
-
