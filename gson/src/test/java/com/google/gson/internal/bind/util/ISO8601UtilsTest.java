@@ -76,6 +76,16 @@ public class ISO8601UtilsTest {
   }
 
   @Test
+  @SuppressWarnings("JavaUtilDate")
+  public void testDateFormatWithTimezoneOffsetIncludingMinutes() {
+    long time = 1530209176870L;
+    Date date = new Date(time); // 
+    String dateStr = ISO8601Utils.format(date, true, TimeZone.getTimeZone("GMT+03:15"));
+    String expectedDate = "2018-06-28T21:21:16.870+03:15";
+    assertThat(dateStr).isEqualTo(expectedDate);
+  }
+
+  @Test
   @SuppressWarnings("UndefinedEquals")
   public void testDateParseWithDefaultTimezone() throws ParseException {
     String dateStr = "2018-06-25";
