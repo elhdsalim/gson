@@ -41,7 +41,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Functional tests for Json serialization and deserialization of classes with inheritance
+ * Functional tests for Json serialization and deserialization of classes with
+ * inheritance
  * hierarchies.
  *
  * @author Inderjeet Singh
@@ -57,20 +58,18 @@ public class InheritanceTest {
 
   @Test
   public void testSubClassSerialization() {
-    SubTypeOfNested target =
-        new SubTypeOfNested(
-            new BagOfPrimitives(10, 20, false, "stringValue"),
-            new BagOfPrimitives(30, 40, true, "stringValue"));
+    SubTypeOfNested target = new SubTypeOfNested(
+        new BagOfPrimitives(10, 20, false, "stringValue"),
+        new BagOfPrimitives(30, 40, true, "stringValue"));
     assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
   public void testSubClassDeserialization() {
-    String json =
-        "{\"value\":5,\"primitive1\":{\"longValue\":10,\"intValue\":20,"
-            + "\"booleanValue\":false,\"stringValue\":\"stringValue\"},\"primitive2\":"
-            + "{\"longValue\":30,\"intValue\":40,\"booleanValue\":true,"
-            + "\"stringValue\":\"stringValue\"}}";
+    String json = "{\"value\":5,\"primitive1\":{\"longValue\":10,\"intValue\":20,"
+        + "\"booleanValue\":false,\"stringValue\":\"stringValue\"},\"primitive2\":"
+        + "{\"longValue\":30,\"intValue\":40,\"booleanValue\":true,"
+        + "\"stringValue\":\"stringValue\"}}";
     SubTypeOfNested target = gson.fromJson(json, SubTypeOfNested.class);
     assertThat(target.getExpectedJson()).isEqualTo(json);
   }
@@ -85,7 +84,7 @@ public class InheritanceTest {
 
   @Test
   public void testClassWithBaseArrayFieldSerialization() {
-    Base[] baseClasses = new Base[] {new Sub(), new Sub()};
+    Base[] baseClasses = new Base[] { new Sub(), new Sub() };
     ClassWithBaseArrayField sub = new ClassWithBaseArrayField(baseClasses);
     JsonObject json = gson.toJsonTree(sub).getAsJsonObject();
     JsonArray bases = json.get(ClassWithBaseArrayField.FIELD_KEY).getAsJsonArray();
@@ -190,21 +189,18 @@ public class InheritanceTest {
     sortedSet.add('b');
     sortedSet.add('c');
     sortedSet.add('d');
-    ClassWithSubInterfacesOfCollection target =
-        new ClassWithSubInterfacesOfCollection(list, queue, set, sortedSet);
+    ClassWithSubInterfacesOfCollection target = new ClassWithSubInterfacesOfCollection(list, queue, set, sortedSet);
     assertThat(gson.toJson(target)).isEqualTo(target.getExpectedJson());
   }
 
   @Test
   public void testSubInterfacesOfCollectionDeserialization() {
-    String json =
-        "{\"list\":[0,1,2,3],\"queue\":[0,1,2,3],\"set\":[0.1,0.2,0.3,0.4],"
-            + "\"sortedSet\":[\"a\",\"b\",\"c\",\"d\"]"
-            + "}";
-    ClassWithSubInterfacesOfCollection target =
-        gson.fromJson(json, ClassWithSubInterfacesOfCollection.class);
+    String json = "{\"list\":[0,1,2,3],\"queue\":[0,1,2,3],\"set\":[0.1,0.2,0.3,0.4],"
+        + "\"sortedSet\":[\"a\",\"b\",\"c\",\"d\"]"
+        + "}";
+    ClassWithSubInterfacesOfCollection target = gson.fromJson(json, ClassWithSubInterfacesOfCollection.class);
     assertThat(target.listContains(0, 1, 2, 3)).isTrue();
-    assertThat(target.queueContains(0, 1, 2, 3)).isTrue();
+    assertThat(target.queueContains(0L, 1L, 2L, 3L)).isTrue(); // ici j'ai changé car ça attend des long, pas des int
     assertThat(target.setContains(0.1F, 0.2F, 0.3F, 0.4F)).isTrue();
     assertThat(target.sortedSetContains('a', 'b', 'c', 'd')).isTrue();
   }
@@ -223,40 +219,31 @@ public class InheritanceTest {
       this.sortedSet = sortedSet;
     }
 
-    boolean listContains(int... values) {
-      for (int value : values) {
-        if (!list.contains(value)) {
+    @SafeVarargs // https://www.jetbrains.com/help/inspectopedia/unchecked.html
+    private final <T> boolean containsAll(Collection<T> collection, T... values) {
+      for (T value : values) {
+        if (!collection.contains(value)) {
           return false;
         }
       }
       return true;
     }
 
-    boolean queueContains(long... values) {
-      for (long value : values) {
-        if (!queue.contains(value)) {
-          return false;
-        }
-      }
-      return true;
+    boolean listContains(Integer... values) {
+      return containsAll(this.list, values);
     }
 
-    boolean setContains(float... values) {
-      for (float value : values) {
-        if (!set.contains(value)) {
-          return false;
-        }
-      }
-      return true;
+    boolean queueContains(Long... values) {
+      return containsAll(queue, values);
+
     }
 
-    boolean sortedSetContains(char... values) {
-      for (char value : values) {
-        if (!sortedSet.contains(value)) {
-          return false;
-        }
-      }
-      return true;
+    boolean setContains(Float... values) {
+      return containsAll(set, values);
+    }
+
+    boolean sortedSetContains(Character... values) {
+      return containsAll(sortedSet, values);
     }
 
     String getExpectedJson() {
@@ -295,5 +282,6 @@ public class InheritanceTest {
       sb.append("]");
       return sb;
     }
+
   }
 }
