@@ -574,12 +574,12 @@ public final class TypeAdapters {
         in.nextNull();
         return null;
       }
-      String s = in.nextString();
+      String decimalValue = in.nextString();
       try {
-        return NumberLimits.parseBigDecimal(s);
+        return NumberLimits.parseBigDecimal(decimalValue);
       } catch (NumberFormatException e) {
         throw new JsonSyntaxException(
-            "Failed parsing '" + s + "' as BigDecimal; at path " + in.getPreviousPath(), e);
+            "Failed parsing '" + decimalValue + "' as BigDecimal; at path " + in.getPreviousPath(), e);
       }
     }
 
@@ -598,12 +598,12 @@ public final class TypeAdapters {
         in.nextNull();
         return null;
       }
-      String s = in.nextString();
+      String integerValue = in.nextString();
       try {
-        return NumberLimits.parseBigInteger(s);
+        return NumberLimits.parseBigInteger(integerValue);
       } catch (NumberFormatException e) {
         throw new JsonSyntaxException(
-            "Failed parsing '" + s + "' as BigInteger; at path " + in.getPreviousPath(), e);
+            "Failed parsing '" + integerValue + "' as BigInteger; at path " + in.getPreviousPath(), e);
       }
     }
 
@@ -732,8 +732,8 @@ public final class TypeAdapters {
       // possibly-better
       // .getAllByName
       @SuppressWarnings("AddressSelection")
-      InetAddress addr = InetAddress.getByName(in.nextString());
-      return addr;
+      InetAddress address = InetAddress.getByName(in.nextString());
+      return address;
     }
 
     @Override
@@ -752,12 +752,12 @@ public final class TypeAdapters {
         in.nextNull();
         return null;
       }
-      String s = in.nextString();
+      String uuidValue = in.nextString();
       try {
-        return java.util.UUID.fromString(s);
+        return java.util.UUID.fromString(uuidValue);
       } catch (IllegalArgumentException e) {
         throw new JsonSyntaxException(
-            "Failed parsing '" + s + "' as UUID; at path " + in.getPreviousPath(), e);
+            "Failed parsing '" + uuidValue + "' as UUID; at path " + in.getPreviousPath(), e);
       }
     }
 
@@ -772,12 +772,12 @@ public final class TypeAdapters {
   public static final TypeAdapter<Currency> CURRENCY = new TypeAdapter<Currency>() {
     @Override
     public Currency read(JsonReader in) throws IOException {
-      String s = in.nextString();
+      String currency = in.nextString();
       try {
-        return Currency.getInstance(s);
+        return Currency.getInstance(currency);
       } catch (IllegalArgumentException e) {
         throw new JsonSyntaxException(
-            "Failed parsing '" + s + "' as Currency; at path " + in.getPreviousPath(), e);
+            "Failed parsing '" + currency + "' as Currency; at path " + in.getPreviousPath(), e);
       }
     }
 
