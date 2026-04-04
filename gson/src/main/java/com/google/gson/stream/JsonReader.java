@@ -535,10 +535,7 @@ public class JsonReader implements Closeable {
    *                               array.
    */
   public void beginArray() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_BEGIN_ARRAY) {
       push(JsonScope.EMPTY_ARRAY);
       pathIndices[stackSize - 1] = 0;
@@ -556,10 +553,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not the end of an array.
    */
   public void endArray() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_END_ARRAY) {
       stackSize--;
       pathIndices[stackSize - 1]++;
@@ -578,10 +572,7 @@ public class JsonReader implements Closeable {
    *                               object.
    */
   public void beginObject() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_BEGIN_OBJECT) {
       push(JsonScope.EMPTY_OBJECT);
       peeked = PEEKED_NONE;
@@ -598,10 +589,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not the end of an object.
    */
   public void endObject() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_END_OBJECT) {
       stackSize--;
       pathNames[stackSize] = null; // Free the last path name so that it can be garbage collected!
@@ -614,20 +602,13 @@ public class JsonReader implements Closeable {
 
   /** Returns true if the current array or object has another element. */
   public boolean hasNext() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     return p != PEEKED_END_OBJECT && p != PEEKED_END_ARRAY && p != PEEKED_EOF;
   }
 
   /** Returns the type of the next token without consuming it. */
   public JsonToken peek() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
-
+    int p = doPeekIfPeekedNone(this);
     switch (p) {
       case PEEKED_BEGIN_OBJECT:
         return JsonToken.BEGIN_OBJECT;
@@ -1031,10 +1012,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not a property name.
    */
   public String nextName() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     String result;
     if (p == PEEKED_UNQUOTED_NAME) {
       result = nextUnquotedValue();
@@ -1058,10 +1036,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not a string.
    */
   public String nextString() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     String result;
     if (p == PEEKED_UNQUOTED) {
       result = nextUnquotedValue();
@@ -1092,10 +1067,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not a boolean.
    */
   public boolean nextBoolean() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_TRUE) {
       peeked = PEEKED_NONE;
       pathIndices[stackSize - 1]++;
@@ -1115,10 +1087,7 @@ public class JsonReader implements Closeable {
    * @throws IllegalStateException if the next token is not a JSON null.
    */
   public void nextNull() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_NULL) {
       peeked = PEEKED_NONE;
       pathIndices[stackSize - 1]++;
@@ -1144,11 +1113,7 @@ public class JsonReader implements Closeable {
    *                                lenient}.
    */
   public double nextDouble() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
-
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_LONG) {
       peeked = PEEKED_NONE;
       pathIndices[stackSize - 1]++;
@@ -1192,11 +1157,7 @@ public class JsonReader implements Closeable {
    *                               exactly represented as a long.
    */
   public long nextLong() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
-
+    int p = doPeekIfPeekedNone(this);
     if (p == PEEKED_LONG) {
       peeked = PEEKED_NONE;
       pathIndices[stackSize - 1]++;
@@ -1438,11 +1399,7 @@ public class JsonReader implements Closeable {
    *                               exactly represented as an int.
    */
   public int nextInt() throws IOException {
-    int p = peeked;
-    if (p == PEEKED_NONE) {
-      p = doPeek();
-    }
-
+    int p = doPeekIfPeekedNone(this);
     int result;
     if (p == PEEKED_LONG) {
       result = (int) peekedLong;
@@ -2021,6 +1978,15 @@ public class JsonReader implements Closeable {
     pos += 5;
   }
 
+  private static int doPeekIfPeekedNone(JsonReader reader) throws IOException {
+    int p = reader.peeked;
+    if (p == PEEKED_NONE) {
+      p = reader.doPeek();
+    }
+
+    return p;
+  }
+
   static {
     JsonReaderInternalAccess.INSTANCE = new JsonReaderInternalAccess() {
       @Override
@@ -2029,10 +1995,7 @@ public class JsonReader implements Closeable {
           ((JsonTreeReader) reader).promoteNameToValue();
           return;
         }
-        int p = reader.peeked;
-        if (p == PEEKED_NONE) {
-          p = reader.doPeek();
-        }
+        int p = doPeekIfPeekedNone(reader);
         if (p == PEEKED_DOUBLE_QUOTED_NAME) {
           reader.peeked = PEEKED_DOUBLE_QUOTED;
         } else if (p == PEEKED_SINGLE_QUOTED_NAME) {
