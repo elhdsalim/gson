@@ -681,7 +681,7 @@ public class JsonReader implements Closeable {
           peeked = PEEKED_NULL;
           return peeked;
         } else {
-          throw syntaxError("Unexpected value");
+          throw new NotHandledJsonValueException("Unexpected value" + locationString());
         }
       case '\'':
         checkLenient();
@@ -805,7 +805,7 @@ public class JsonReader implements Closeable {
         pos--;
       }
     } else if (peekStack == JsonScope.CLOSED) {
-      throw new IllegalStateException("JsonReader is closed");
+      throw new JsonScopeClosedException("JsonReader is closed");
     }
 
     return peekHandleValue(peekStack);
