@@ -16,6 +16,9 @@
 
 package com.google.gson.internal.bind;
 
+import java.io.IOException;
+import java.util.Map;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -26,51 +29,13 @@ import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
 
 /** Adapter for {@link JsonElement} and subclasses. */
 public class JsonElementTypeAdapter extends TypeAdapter<JsonElement> {
   public static final JsonElementTypeAdapter ADAPTER = new JsonElementTypeAdapter();
+  private NestingHandler nestingHandler = new NestingHandler();
 
-  private JsonElementTypeAdapter() {}
-
-  /**
-   * Tries to begin reading a JSON array or JSON object, returning {@code null} if the next element
-   * is neither of those.
-   */
-  private JsonElement tryBeginNesting(JsonReader in, JsonToken peeked) throws IOException {
-    switch (peeked) {
-      case BEGIN_ARRAY:
-        in.beginArray();
-        return new JsonArray();
-      case BEGIN_OBJECT:
-        in.beginObject();
-        return new JsonObject();
-      default:
-        return null;
-    }
-  }
-
-  /** Reads a {@link JsonElement} which cannot have any nested elements */
-  private JsonElement readTerminal(JsonReader in, JsonToken peeked) throws IOException {
-    switch (peeked) {
-      case STRING:
-        return new JsonPrimitive(in.nextString());
-      case NUMBER:
-        String number = in.nextString();
-        return new JsonPrimitive(new LazilyParsedNumber(number));
-      case BOOLEAN:
-        return new JsonPrimitive(in.nextBoolean());
-      case NULL:
-        in.nextNull();
-        return JsonNull.INSTANCE;
-      default:
-        // When read(JsonReader) is called with JsonReader in invalid state
-        throw new IllegalStateException("Unexpected token: " + peeked);
-    }
+  private JsonElementTypeAdapter() {
   }
 
   @Override
@@ -80,59 +45,7 @@ public class JsonElementTypeAdapter extends TypeAdapter<JsonElement> {
       return ((JsonTreeReader) in).nextJsonElement();
     }
 
-    // Either JsonArray or JsonObject
-    JsonElement current;
-    JsonToken peeked = in.peek();
-
-    current = tryBeginNesting(in, peeked);
-    if (current == null) {
-      return readTerminal(in, peeked);
-    }
-
-    Deque<JsonElement> stack = new ArrayDeque<>();
-
-    while (true) {
-      while (in.hasNext()) {
-        String name = null;
-        // Name is only used for JSON object members
-        if (current instanceof JsonObject) {
-          name = in.nextName();
-        }
-
-        peeked = in.peek();
-        JsonElement value = tryBeginNesting(in, peeked);
-        boolean isNesting = value != null;
-
-        if (value == null) {
-          value = readTerminal(in, peeked);
-        }
-
-        if (current instanceof JsonArray) {
-          ((JsonArray) current).add(value);
-        } else {
-          ((JsonObject) current).add(name, value);
-        }
-
-        if (isNesting) {
-          stack.addLast(current);
-          current = value;
-        }
-      }
-
-      // End current element
-      if (current instanceof JsonArray) {
-        in.endArray();
-      } else {
-        in.endObject();
-      }
-
-      if (stack.isEmpty()) {
-        return current;
-      } else {
-        // Continue with enclosing element
-        current = stack.removeLast();
-      }
-    }
+    return nestingHandler.readNestingValue(in);
   }
 
   @Override
@@ -166,6 +79,69 @@ public class JsonElementTypeAdapter extends TypeAdapter<JsonElement> {
 
     } else {
       throw new IllegalArgumentException("Couldn't write " + value.getClass());
+    }
+  }
+
+  /**
+   * Tries to begin reading a JSON array or JSON object, returning {@code null} if
+   * the next element
+   * is neither of those.
+   */
+  private class NestingHandler extends AbstractNestingAdapter<JsonElement> {
+    @Override
+    protected JsonElement tryBeginNesting(JsonReader in, JsonToken peeked) throws IOException {
+      switch (peeked) {
+        case BEGIN_ARRAY:
+          in.beginArray();
+          return new JsonArray();
+        case BEGIN_OBJECT:
+          in.beginObject();
+          return new JsonObject();
+        default:
+          return null;
+      }
+    }
+
+    @Override
+    protected JsonElement readTerminal(JsonReader in, JsonToken peeked) throws IOException {
+      switch (peeked) {
+        case STRING:
+          return new JsonPrimitive(in.nextString());
+        case NUMBER:
+          String number = in.nextString();
+          return new JsonPrimitive(new LazilyParsedNumber(number));
+        case BOOLEAN:
+          return new JsonPrimitive(in.nextBoolean());
+        case NULL:
+          in.nextNull();
+          return JsonNull.INSTANCE;
+        default:
+          // When read(JsonReader) is called with JsonReader in invalid state
+          throw new IllegalStateException("Unexpected token: " + peeked);
+      }
+    }
+
+    @Override
+    protected boolean isInstanceOf(JsonElement value) {
+      return value instanceof JsonObject;
+    }
+
+    @Override
+    protected void add(JsonElement current, String name, JsonElement value) {
+      if (current instanceof JsonArray) {
+        ((JsonArray) current).add(value);
+      } else {
+        ((JsonObject) current).add(name, value);
+      }
+    }
+
+    @Override
+    protected void endHandling(JsonReader in, JsonElement current) throws IOException {
+      if (current instanceof JsonArray) {
+        in.endArray();
+      } else {
+        in.endObject();
+      }
     }
   }
 }
