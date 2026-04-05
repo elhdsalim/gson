@@ -21,7 +21,7 @@ import static org.junit.Assume.assumeTrue;
 
 import com.google.gson.JsonElement;
 import com.google.gson.Strictness;
-import com.google.gson.internal.Streams;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.internal.bind.JsonTreeReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -416,7 +416,7 @@ public class JsonReaderPathTest {
     OBJECT_READER {
       @Override
       public JsonReader create(String data) {
-        JsonElement element = Streams.parse(new JsonReader(new StringReader(data)));
+        JsonElement element = JsonStreams.parse(new JsonReader(new StringReader(data)));
         return new JsonTreeReader(element);
       }
     };

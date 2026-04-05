@@ -16,6 +16,12 @@
 
 package com.google.gson.internal.bind;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
@@ -25,17 +31,12 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.GsonTypes;
 import com.google.gson.internal.JsonReaderInternalAccess;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.internal.ObjectConstructor;
-import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Adapts maps to either JSON objects or JSON arrays.
@@ -243,7 +244,7 @@ public final class MapTypeAdapterFactory implements TypeAdapterFactory {
         out.beginArray();
         for (int i = 0, size = keys.size(); i < size; i++) {
           out.beginArray(); // entry array
-          Streams.write(keys.get(i), out);
+          JsonStreams.write(keys.get(i), out);
           valueTypeAdapter.write(out, values.get(i));
           out.endArray();
         }

@@ -16,6 +16,10 @@
 
 package com.google.gson.internal.bind;
 
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Objects;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -25,13 +29,10 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
-import com.google.gson.internal.Streams;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.Objects;
 
 /**
  * Adapts a Gson 1.x tree-style adapter as a streaming TypeAdapter. Since the tree adapter may be
@@ -88,7 +89,7 @@ public final class TreeTypeAdapter<T> extends SerializationDelegatingTypeAdapter
     if (deserializer == null) {
       return delegate().read(in);
     }
-    JsonElement value = Streams.parse(in);
+    JsonElement value = JsonStreams.parse(in);
     if (nullSafe && value.isJsonNull()) {
       return null;
     }
@@ -106,7 +107,7 @@ public final class TreeTypeAdapter<T> extends SerializationDelegatingTypeAdapter
       return;
     }
     JsonElement tree = serializer.serialize(value, typeToken.getType(), context);
-    Streams.write(tree, out);
+    JsonStreams.write(tree, out);
   }
 
   private TypeAdapter<T> delegate() {

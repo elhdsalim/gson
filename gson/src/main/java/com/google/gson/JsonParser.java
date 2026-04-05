@@ -15,14 +15,15 @@
  */
 package com.google.gson;
 
-import com.google.errorprone.annotations.InlineMe;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.MalformedJsonException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+
+import com.google.errorprone.annotations.InlineMe;
+import com.google.gson.internal.JsonStreams;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.MalformedJsonException;
 
 /**
  * A parser to parse JSON into a parse tree of {@link JsonElement}s.
@@ -141,7 +142,7 @@ public final class JsonParser {
       reader.setStrictness(Strictness.LENIENT);
     }
     try {
-      return Streams.parse(reader);
+      return JsonStreams.parse(reader);
     } catch (StackOverflowError | OutOfMemoryError e) {
       throw new JsonParseException("Failed parsing JSON source: " + reader + " to Json", e);
     } finally {

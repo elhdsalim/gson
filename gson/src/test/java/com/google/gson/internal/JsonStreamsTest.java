@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.Writer;
 import org.junit.Test;
 
-public class StreamsTest {
+public class JsonStreamsTest {
   private static class TestAppendable implements Appendable, Flushable, Closeable {
     boolean closed = false;
     int flushCount = 0;
@@ -68,7 +68,7 @@ public class StreamsTest {
   public void testWriterForAppendable() throws IOException {
     StringBuilder stringBuilder = new StringBuilder();
     TestAppendable appendable = new TestAppendable(stringBuilder);
-    Writer writer = Streams.writerForAppendable(appendable);
+    Writer writer = JsonStreams.writerForAppendable(appendable);
 
     assertThat(appendable.closed).isFalse();
     assertThat(appendable.flushCount).isEqualTo(0);

@@ -15,15 +15,16 @@
  */
 package com.google.gson;
 
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.MalformedJsonException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import com.google.gson.internal.JsonStreams;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.MalformedJsonException;
 
 /**
  * A streaming parser that allows reading of multiple {@link JsonElement}s from the specified reader
@@ -86,7 +87,7 @@ public final class JsonStreamParser implements Iterator<JsonElement> {
     }
 
     try {
-      return Streams.parse(parser);
+      return JsonStreams.parse(parser);
     } catch (StackOverflowError | OutOfMemoryError e) {
       throw new JsonParseException("Failed parsing JSON source to Json", e);
     }

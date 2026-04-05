@@ -26,7 +26,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.internal.Streams;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -177,7 +177,7 @@ public final class RuntimeTypeAdapterFactoryFunctionalTest {
       return new TypeAdapter<>() {
         @Override
         public R read(JsonReader in) {
-          JsonElement jsonElement = Streams.parse(in);
+          JsonElement jsonElement = JsonStreams.parse(in);
           JsonElement labelJsonElement = jsonElement.getAsJsonObject().get(typeFieldName);
           if (labelJsonElement == null) {
             throw new JsonParseException(
@@ -221,7 +221,7 @@ public final class RuntimeTypeAdapterFactoryFunctionalTest {
             }
             jsonObject = clone;
           }
-          Streams.write(jsonObject, out);
+          JsonStreams.write(jsonObject, out);
         }
       };
     }

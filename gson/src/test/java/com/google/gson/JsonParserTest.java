@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
 
 import com.google.gson.common.TestTypes.BagOfPrimitives;
-import com.google.gson.internal.Streams;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.stream.JsonReader;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
@@ -161,8 +161,8 @@ public class JsonParserTest {
 
     JsonReader parser = new JsonReader(reader);
     parser.setStrictness(Strictness.LENIENT);
-    JsonElement element1 = Streams.parse(parser);
-    JsonElement element2 = Streams.parse(parser);
+    JsonElement element1 = JsonStreams.parse(parser);
+    JsonElement element2 = JsonStreams.parse(parser);
     BagOfPrimitives actualOne = gson.fromJson(element1, BagOfPrimitives.class);
     assertThat(actualOne.stringValue).isEqualTo("one");
     BagOfPrimitives actualTwo = gson.fromJson(element2, BagOfPrimitives.class);

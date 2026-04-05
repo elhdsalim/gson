@@ -16,6 +16,13 @@
 
 package com.google.gson.internal;
 
+import java.io.Closeable;
+import java.io.EOFException;
+import java.io.Flushable;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Objects;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonNull;
@@ -26,16 +33,10 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import com.google.gson.stream.MalformedJsonException;
-import java.io.Closeable;
-import java.io.EOFException;
-import java.io.Flushable;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Objects;
 
 /** Reads and writes GSON parse trees over streams. */
-public final class Streams {
-  private Streams() {
+public final class JsonStreams {
+  private JsonStreams() {
     throw new UnsupportedOperationException();
   }
 

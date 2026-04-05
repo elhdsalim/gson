@@ -34,8 +34,8 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.internal.ConstructorConstructor;
 import com.google.gson.internal.Excluder;
 import com.google.gson.internal.GsonBuildConfig;
+import com.google.gson.internal.JsonStreams;
 import com.google.gson.internal.Primitives;
-import com.google.gson.internal.Streams;
 import com.google.gson.internal.bind.JsonAdapterAnnotationTypeAdapterFactory;
 import com.google.gson.internal.bind.JsonTreeReader;
 import com.google.gson.internal.bind.JsonTreeWriter;
@@ -760,7 +760,7 @@ public final class Gson {
    */
   public void toJson(Object src, Type typeOfSrc, Appendable writer) throws JsonIOException {
     try {
-      JsonWriter jsonWriter = newJsonWriter(Streams.writerForAppendable(writer));
+      JsonWriter jsonWriter = newJsonWriter(JsonStreams.writerForAppendable(writer));
       toJson(src, typeOfSrc, jsonWriter);
     } catch (IOException e) {
       throw new JsonIOException(e);
@@ -857,7 +857,7 @@ public final class Gson {
    */
   public void toJson(JsonElement jsonElement, Appendable writer) throws JsonIOException {
     try {
-      JsonWriter jsonWriter = newJsonWriter(Streams.writerForAppendable(writer));
+      JsonWriter jsonWriter = newJsonWriter(JsonStreams.writerForAppendable(writer));
       toJson(jsonElement, jsonWriter);
     } catch (IOException e) {
       throw new JsonIOException(e);
@@ -912,7 +912,7 @@ public final class Gson {
     }
 
     try {
-      Streams.write(jsonElement, writer);
+      JsonStreams.write(jsonElement, writer);
     } catch (IOException e) {
       throw new JsonIOException(e);
     } catch (AssertionError e) {

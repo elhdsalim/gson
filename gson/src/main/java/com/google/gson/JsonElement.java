@@ -16,12 +16,13 @@
 
 package com.google.gson;
 
-import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.gson.internal.JsonStreams;
+import com.google.gson.stream.JsonWriter;
 
 /**
  * A class representing an element of JSON. It could either be a {@link JsonObject}, a {@link
@@ -421,11 +422,11 @@ public abstract class JsonElement {
   public String toString() {
     try {
       StringBuilder stringBuilder = new StringBuilder();
-      JsonWriter jsonWriter = new JsonWriter(Streams.writerForAppendable(stringBuilder));
+      JsonWriter jsonWriter = new JsonWriter(JsonStreams.writerForAppendable(stringBuilder));
       // Make writer lenient because toString() must not fail, even if for example JsonPrimitive
       // contains NaN
       jsonWriter.setStrictness(Strictness.LENIENT);
-      Streams.write(this, jsonWriter);
+      JsonStreams.write(this, jsonWriter);
       return stringBuilder.toString();
     } catch (IOException e) {
       throw new AssertionError(e);
