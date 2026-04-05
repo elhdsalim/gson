@@ -663,6 +663,7 @@ public class JsonReader implements Closeable {
     return peeked;
   }
 
+  @SuppressWarnings("fallthrough")
   private int peekHandleValue(int peekStack) throws IOException {
     int c = nextNonWhitespace(true);
     switch (c) {
@@ -681,7 +682,7 @@ public class JsonReader implements Closeable {
           peeked = PEEKED_NULL;
           return peeked;
         } else {
-          throw new NotHandledJsonValueException("Unexpected value" + locationString());
+          throw syntaxError("Unexpected value");
         }
       case '\'':
         checkLenient();
@@ -719,6 +720,8 @@ public class JsonReader implements Closeable {
     }
   }
 
+  @SuppressWarnings("fallthrough")
+
   private int peekObject(int peekStack) throws IOException {
     if (peekStack == JsonScope.NONEMPTY_OBJECT) {
       int c = nextNonWhitespace(true);
@@ -727,7 +730,7 @@ public class JsonReader implements Closeable {
           peeked = PEEKED_END_OBJECT;
           return peeked;
         case ';':
-          checkLenient(); // fall-through
+          checkLenient();
         case ',':
           break;
         default:
@@ -1338,7 +1341,7 @@ public class JsonReader implements Closeable {
           return;
         } else if (c == '\\') {
           pos = p;
-          readEscapeCharacter();
+          char unused = readEscapeCharacter();
           p = pos;
           l = limit;
         } else if (c == '\n') {
@@ -1957,7 +1960,7 @@ public class JsonReader implements Closeable {
   /** Consumes the non-execute prefix if it exists. */
   private void consumeNonExecutePrefix() throws IOException {
     // fast-forward through the leading whitespace
-    nextNonWhitespace(true);
+    int unused = nextNonWhitespace(true);
     pos--;
 
     if (pos + 5 > limit && !fillBuffer(5)) {
