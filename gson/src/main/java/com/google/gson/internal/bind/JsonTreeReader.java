@@ -16,12 +16,6 @@
 
 package com.google.gson.internal.bind;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -31,35 +25,45 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.MalformedJsonException;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * This reader walks the elements of a JsonElement as if it was coming from a character stream.
+ * This reader walks the elements of a JsonElement as if it was coming from a
+ * character stream.
  *
  * @author Jesse Wilson
  */
 public final class JsonTreeReader extends JsonReader {
-  private static final Reader UNREADABLE_READER =
-      new Reader() {
-        @Override
-        public int read(char[] buffer, int offset, int count) {
-          throw new AssertionError();
-        }
+  private static final Reader UNREADABLE_READER = new Reader() {
+    @Override
+    public int read(char[] buffer, int offset, int count) {
+      throw new AssertionError();
+    }
 
-        @Override
-        public void close() {
-          throw new AssertionError();
-        }
-      };
+    @Override
+    public void close() {
+      throw new AssertionError();
+    }
+  };
   private static final Object SENTINEL_CLOSED = new Object();
   private static final int STACK_CAPACITY = 32;
 
-  /** The nesting stack. Using a manual array rather than an ArrayList saves 20%. */
+  /**
+   * The nesting stack. Using a manual array rather than an ArrayList saves 20%.
+   */
   private Object[] stack = new Object[STACK_CAPACITY];
 
   /**
-   * The used size of {@link #stack}; the value at {@code stackSize - 1} is the value last placed on
-   * the stack. {@code stackSize} might differ from the nesting depth, because the stack also
-   * contains temporary additional objects, for example for a JsonArray it contains the JsonArray
+   * The used size of {@link #stack}; the value at {@code stackSize - 1} is the
+   * value last placed on
+   * the stack. {@code stackSize} might differ from the nesting depth, because the
+   * stack also
+   * contains temporary additional objects, for example for a JsonArray it
+   * contains the JsonArray
    * object as well as the corresponding iterator.
    */
   private int stackSize = 0;
@@ -124,6 +128,51 @@ public final class JsonTreeReader extends JsonReader {
         && token != JsonToken.END_DOCUMENT;
   }
 
+  private JsonToken peekOnIterator(Iterator<?> iterator) throws IOException {
+    boolean isObject = stack[stackSize - 2] instanceof JsonObject;
+    if (iterator.hasNext()) {
+      if (isObject) {
+        return JsonToken.NAME;
+      } else {
+        push(iterator.next());
+        return peek();
+      }
+    } else {
+      return isObject ? JsonToken.END_OBJECT : JsonToken.END_ARRAY;
+    }
+  }
+
+  private JsonToken peekElement(Object elem) throws IOException {
+    if (elem instanceof Iterator) {
+      return peekOnIterator((Iterator<?>) elem);
+    } else if (elem instanceof JsonObject) {
+      return JsonToken.BEGIN_OBJECT;
+    } else if (elem instanceof JsonArray) {
+      return JsonToken.BEGIN_ARRAY;
+    } else if (elem instanceof JsonPrimitive) {
+      return peekOnPrimitive((JsonPrimitive) elem);
+    } else if (elem instanceof JsonNull) {
+      return JsonToken.NULL;
+    } else if (elem == SENTINEL_CLOSED) {
+      throw new IllegalStateException("JsonReader is closed");
+    } else {
+      throw new MalformedJsonException(
+          "Custom JsonElement subclass " + elem.getClass().getName() + " is not supported");
+    }
+  }
+
+  private static JsonToken peekOnPrimitive(JsonPrimitive primitive) {
+    if (primitive.isString()) {
+      return JsonToken.STRING;
+    } else if (primitive.isBoolean()) {
+      return JsonToken.BOOLEAN;
+    } else if (primitive.isNumber()) {
+      return JsonToken.NUMBER;
+    } else {
+      throw new AssertionError();
+    }
+  }
+
   @Override
   public JsonToken peek() throws IOException {
     if (stackSize == 0) {
@@ -131,42 +180,7 @@ public final class JsonTreeReader extends JsonReader {
     }
 
     Object o = peekStack();
-    if (o instanceof Iterator) {
-      boolean isObject = stack[stackSize - 2] instanceof JsonObject;
-      Iterator<?> iterator = (Iterator<?>) o;
-      if (iterator.hasNext()) {
-        if (isObject) {
-          return JsonToken.NAME;
-        } else {
-          push(iterator.next());
-          return peek();
-        }
-      } else {
-        return isObject ? JsonToken.END_OBJECT : JsonToken.END_ARRAY;
-      }
-    } else if (o instanceof JsonObject) {
-      return JsonToken.BEGIN_OBJECT;
-    } else if (o instanceof JsonArray) {
-      return JsonToken.BEGIN_ARRAY;
-    } else if (o instanceof JsonPrimitive) {
-      JsonPrimitive primitive = (JsonPrimitive) o;
-      if (primitive.isString()) {
-        return JsonToken.STRING;
-      } else if (primitive.isBoolean()) {
-        return JsonToken.BOOLEAN;
-      } else if (primitive.isNumber()) {
-        return JsonToken.NUMBER;
-      } else {
-        throw new AssertionError();
-      }
-    } else if (o instanceof JsonNull) {
-      return JsonToken.NULL;
-    } else if (o == SENTINEL_CLOSED) {
-      throw new IllegalStateException("JsonReader is closed");
-    } else {
-      throw new MalformedJsonException(
-          "Custom JsonElement subclass " + o.getClass().getName() + " is not supported");
-    }
+    return peekElement(o);
   }
 
   private Object peekStack() {
@@ -298,7 +312,7 @@ public final class JsonTreeReader extends JsonReader {
 
   @Override
   public void close() throws IOException {
-    stack = new Object[] {SENTINEL_CLOSED};
+    stack = new Object[] { SENTINEL_CLOSED };
     stackSize = 1;
   }
 
@@ -357,7 +371,8 @@ public final class JsonTreeReader extends JsonReader {
       if (stack[i] instanceof JsonArray) {
         if (++i < stackSize && stack[i] instanceof Iterator) {
           int pathIndex = pathIndices[i];
-          // If index is last path element it points to next array element; have to decrement
+          // If index is last path element it points to next array element; have to
+          // decrement
           // `- 1` covers case where iterator for next element is on stack
           // `- 2` covers case where peek() already pushed next element onto stack
           if (usePreviousPath && pathIndex > 0 && (i == stackSize - 1 || i == stackSize - 2)) {
